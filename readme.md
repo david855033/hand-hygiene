@@ -1,8 +1,8 @@
-#Hand-Hygiene
+# Hand-Hygiene
 
-##extract.py:
+## extract.py:
 extract images from assigned video clip
-###usage:
+### usage:
 The following command will extract images from
 the video: '.\videoname.mp4'
 to
