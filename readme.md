@@ -3,10 +3,10 @@
 ## extract.py:
 extract images from assigned video clip
 ### usage:
-The following command will extract images
-from the video: '.\videoname.mp4'<br/>
-to the folder: '.\dest'<br/>
-MAX_IMG_NUMBER(optional): set maximal images to capture 
 ```
-python extract.py '.\videoname.mp4' [-f .\dest] [-n MAX_IMG_NUMBER]
+python extract.py .\videoname.mp4 [-f folder_path] [-n max_img_number] [-r extract_ratio]
 ```
+note: <br>
+folder_path: set the folder path, (default = ./dest)
+max_img_number: limit the maximum of images been extracted in one video <br>
+extract_ratio: how many frames should be read/skipped before capture one frame img  <br>
