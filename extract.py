@@ -8,11 +8,11 @@ parser.add_argument("video_path", help="path of video to be extracted")
 parser.add_argument("-f", help="path of destiny folder",
                     default=".\dest", dest="folder_path")
 parser.add_argument("-n", help="path of destiny folder",
-                    default=".\dest", dest="MAX_COUNT", type=int)
+                    default=-1, dest="MAX_IMG_NUMBER", type=int)
 
 video_path = parser.parse_args().video_path
 folder_path = parser.parse_args().folder_path
-MAX_COUNT = parser.parse_args().MAX_COUNT
+MAX_IMG_NUMBER = parser.parse_args().MAX_IMG_NUMBER
 
 if not os.path.exists(folder_path):
     os.makedirs(folder_path)
@@ -26,7 +26,7 @@ while(cap.isOpened()):
         print(filename)
         cv2.imwrite(filename, frame)
         i += 1
-    if cv2.waitKey(1) & 0xFF == ord('q') or (i >= MAX_COUNT and MAX_COUNT > 0):
+    if cv2.waitKey(1) & 0xFF == ord('q') or (i > MAX_IMG_NUMBER and MAX_IMG_NUMBER > 0):
         break
 
 cap.release()
