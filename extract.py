@@ -26,7 +26,8 @@ while(cap.isOpened()):
         print(filename)
         cv2.imwrite(filename, frame)
         i += 1
-    if cv2.waitKey(1) & 0xFF == ord('q') or (i > MAX_IMG_NUMBER and MAX_IMG_NUMBER > 0):
+    if cv2.waitKey(1) & 0xFF == ord('q') or(
+            i > MAX_IMG_NUMBER and MAX_IMG_NUMBER > 0):
         break
 
 cap.release()
