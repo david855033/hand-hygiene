@@ -4,7 +4,7 @@ from extract_module import extract
 parser = ArgumentParser()
 parser.add_argument("video_path", help="path of video to be extracted")
 parser.add_argument("-f", help="path of destiny folder",
-                    default=".\dest", dest="folder_path")
+                    default=r".\dest", dest="folder_path")
 parser.add_argument("-n", help="limit the maximum of images to be extracted in one video",
                     default=-1, dest="max_img_number", type=int)
 parser.add_argument(
