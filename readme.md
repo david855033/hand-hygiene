@@ -24,4 +24,9 @@ python extractfolder.py [-s srcfolder (default='.\videosrc')] [-f destfolder (de
 **srcfolder**<br>
 folder contain source videos<br>
 **destfolder**<br>
-output folder<br> (output image will be separete into different folders according to original video filename)
+output folder, output image will be separete into different folders according to original video filename
+## imgpreprocess.py
+### usage
+```
+python imagepreprocess.py [-s srcfolder (default='.\dest')] [-p preprocess_path (default='.\preprocess')]
+```
