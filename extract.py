@@ -5,10 +5,10 @@ parser = ArgumentParser()
 parser.add_argument("video_path", help="path of video to be extracted")
 parser.add_argument("-f", help="path of destiny folder",
                     default=".\dest", dest="folder_path")
-parser.add_argument("-n", help="path of destiny folder",
+parser.add_argument("-n", help="limit the maximum of images to be extracted in one video",
                     default=-1, dest="max_img_number", type=int)
 parser.add_argument(
-    "-r", help="ratio of frame to be skipped to frame to be extracted",
+    "-r", help="indicate how many frames should be read/skipped before capture one frame",
     default=0, dest="extract_ratio", type=int)
 
 
