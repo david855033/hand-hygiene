@@ -107,6 +107,7 @@ venv.bak/
 *.MOV
 /dest
 /videosrc
+*.jpg
 
 /.vscode
 my-note.md

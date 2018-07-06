@@ -12,7 +12,7 @@ def extract(video_path, folder_path, max_img_number=-1, extract_ratio=0):
     while(ret):
         ret, frame = cap.read()
         if ret:
-            filename = folder_path+r"\%06d.jpg" % count
+            filename = folder_path + r"\%06d.jpg" % count
             if extract_ratio == 0 or i % extract_ratio == 0:
                 print(filename)
                 cv2.imwrite(filename, frame)
