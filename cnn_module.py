@@ -10,16 +10,18 @@ from keras.layers import Conv2D, MaxPooling2D
 from keras.callbacks import TensorBoard
 from keras.models import load_model
 from dataloader_module import loadImgs
+from tensorflow.python.client import device_lib
 
 
 def train(source_path=join(os.getcwd(), "preprocess"),
           model_save_name="model",
           model_load_name="model"):
+
     (x_train, y_train, categories) = loadImgs(source_path)
 
     input_shape = (256, 256, 1)
     batch_size = 32
-    epochs = 1
+    epochs = 12
     num_classes = len(categories)
 
     x_train = np.array(x_train).astype('float32')
@@ -32,10 +34,19 @@ def train(source_path=join(os.getcwd(), "preprocess"),
 
     model = object()
 
-    model_path = join(os.getcwd(), model_save_name+".h5")
+    print("======device information========")
+    print(device_lib.list_local_devices())
+    print("======device information========")
+
+    if not os.path.exists(join(os.getcwd(), 'models')):
+        os.makedirs(join(os.getcwd(), 'models'))
+
+    model_path = join(os.getcwd(), 'models', model_load_name+".h5")
     if model_load_name != "" and os.path.isfile(model_path):
+        print('load model from: ' + model_path)
         model = load_model(model_path)
     else:
+        print('create new model: ' + model_path)
         model = Sequential()
         model.add(Conv2D(32, kernel_size=(3, 3),
                          activation='relu',
@@ -58,6 +69,7 @@ def train(source_path=join(os.getcwd(), "preprocess"),
               callbacks=[TensorBoard(log_dir='./tmp/')])
 
     if model_save_name != "":
-        model.save(join(os.getcwd(), model_save_name+".h5"))
+        model.save(join(os.getcwd(), 'models', model_save_name+".h5"),
+                   overwrite=True)
 
 # shot tensorboard=>  tensorboard --logdir=./tmp
