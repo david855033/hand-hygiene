@@ -30,4 +30,14 @@ output folder, output image will be separete into different folders according to
 ```
 python imagepreprocess.py [-s srcfolder (default='.\dest')] [-p preprocess_path (default='.\preprocess')]
 ```
-.....
+# trainmodel.py
+### usage
+```
+python trainmodel.py [-m dirpath_to_save_model] [-s dirpath_of_source_preprocessed_img]
+```
+not done yet, should generate a keras model base on the folder containing preprocessed data
+### tensorboard
+use the following command to show tensorboard during training
+```
+tensorboard --logdir=./tmp
+```
