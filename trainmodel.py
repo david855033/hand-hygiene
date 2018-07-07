@@ -5,9 +5,9 @@ parser = ArgumentParser()
 parser.add_argument("-f", help="folder that contains source img",
                     default=r".\preprocess", dest="source_path")
 parser.add_argument("-s", help="name of model to save",
-                    default=r".\preprocess", dest="model_save_name")
+                    default="model", dest="model_save_name")
 parser.add_argument("-sl", help="name of model to load",
-                    default=r".\preprocess", dest="model_load_name")
+                    default="model", dest="model_load_name")
 
 source_path = parser.parse_args().source_path
 model_save_name = parser.parse_args().model_save_name
