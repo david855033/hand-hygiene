@@ -30,3 +30,4 @@ output folder, output image will be separete into different folders according to
 ```
 python imagepreprocess.py [-s srcfolder (default='.\dest')] [-p preprocess_path (default='.\preprocess')]
 ```
+.....
