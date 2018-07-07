@@ -31,6 +31,8 @@ output folder, output image will be separete into different folders according to
 python imagepreprocess.py [-s srcfolder (default='.\dest')] [-p preprocess_path (default='.\preprocess')]
 ```
 # trainmodel.py
+### description
+    **use folders containing classified preprocessed data to generate a keras model(classifier)**
 ### usage
 ```
 python trainmodel.py [-m dirpath_to_save_model] [-s dirpath_of_source_preprocessed_img]
