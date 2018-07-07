@@ -113,3 +113,4 @@ venv.bak/
 my-note.md
 
 
+*.ipynb
