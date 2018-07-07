@@ -34,10 +34,6 @@ def train(source_path=join(os.getcwd(), "preprocess"),
 
     model = object()
 
-    print("======device information========")
-    print(device_lib.list_local_devices())
-    print("======device information========")
-
     if not os.path.exists(join(os.getcwd(), 'models')):
         os.makedirs(join(os.getcwd(), 'models'))
 
