@@ -35,9 +35,10 @@ python imagepreprocess.py [-s srcfolder (default='.\dest')] [-p preprocess_path 
     **use folders containing classified preprocessed data to generate a keras model(classifier)**
 ### usage
 ```
-python trainmodel.py [-m dirpath_to_save_model] [-s dirpath_of_source_preprocessed_img]
+python trainmodel.py [-f folder containing training imgs][-s name_to_save_model] [-l name_to_load_model]
 ```
-not done yet, should generate a keras model base on the folder containing preprocessed data
+will automatic load/save with overwrite to ./model/model.h5 unless specifying model name
+
 ### tensorboard
 use the following command to show tensorboard during training
 ```
