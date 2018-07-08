@@ -11,26 +11,29 @@ from keras.callbacks import TensorBoard
 from keras.models import load_model
 from dataloader_module import loadImgs
 from tensorflow.python.client import device_lib
+from action_dictionary import action_dictionary
 
 
 def train(source_path=join(os.getcwd(), "preprocess"),
           model_save_name="model",
           model_load_name="model"):
 
-    (x_train, y_train, categories) = loadImgs(source_path)
+    (x_train, y_train), (x_test, y_test) = loadImgs(source_path)
 
-    input_shape = (256, 256, 1)
+    input_shape = (128, 128, 1)
     batch_size = 32
     epochs = 12
-    num_classes = len(categories)
+    num_classes = len(action_dictionary)
 
     x_train = np.array(x_train).astype('float32')
     x_train /= 255
-    x_train = x_train.reshape(x_train.shape[0], 256, 256, 1)
-    print(x_train.shape)
-
+    x_train = x_train.reshape(x_train.shape[0], 128, 128, 1)
     y_train = keras.utils.to_categorical(y_train, num_classes)
-    print(y_train.shape)
+
+    x_test = np.array(x_test).astype('float32')
+    x_test /= 255
+    x_test = x_test.reshape(x_test.shape[0], 128, 128, 1)
+    y_test = keras.utils.to_categorical(y_test, num_classes)
 
     model = object()
 
@@ -62,6 +65,7 @@ def train(source_path=join(os.getcwd(), "preprocess"),
               batch_size=batch_size,
               epochs=epochs,
               verbose=1,
+              validation_data=(x_test, y_test),
               callbacks=[TensorBoard(log_dir='./tmp/')])
 
     if model_save_name != "":
