@@ -1,41 +1,30 @@
 # Hand-Hygiene
-
-## extract.py:
-extract images from assigned video clip
-### usage:
-```
-python extract.py .\videoname.mp4 [-f folder_path] [-n max_img_number] [-r extract_ratio]
-```
-### Note: 
-**folder_path**<br>
-set the destination folder path, to which all image will be saved (default = ./dest)<br>
-**max_img_number**<br>
-limit the maximum of images to be extracted in one video <br>
-**extract_ratio**<br>
-indicate how many frames should be read/skipped before capture one frame<br>
-
 ## extractfolder.py
-extract images from all video in src folder
-### usage
-```
-python extractfolder.py [-s srcfolder (default='.\videosrc')] [-f destfolder (default='.\dest')] [-n max_img_number] [-r extract_ratio]
-```
-### Note: 
-**srcfolder**<br>
-folder contain source videos<br>
-**destfolder**<br>
-output folder, output image will be separete into different folders according to original video filename
-## imgpreprocess.py
-### usage
-```
-python imagepreprocess.py [-s srcfolder (default='.\dest')] [-p preprocess_path (default='.\preprocess')]
-```
-# trainmodel.py
 ### description
-    **use folders containing classified preprocessed data to generate a keras model(classifier)**
+Extract images from all video in "./videosrc" folder,</br>
+then sort the result images into one of the following 7 categories:</br>
+ 'palm', 'handback', 'finger', 'hook', 'thumb', 'tip', 'wrist'.
+The destiny folder is ./dest/[category_name].
+**NOTE: the filename of the video must contain a category name!**
 ### usage
 ```
-python trainmodel.py [-f folder containing training imgs][-s name_to_save_model] [-l name_to_load_model]
+python extractfolder.py [-s srcfolder (default='.\videosrc')] [-f destfolder (default='.\dest')] [-n max_img_number="default=0(no restriction)"] [-r extract_ratio(default=5)]
+```
+## imgpreprocess.py
+### description
+Load images from ".dest", and do default image preprocessing:</br>
+**resize to 128x128 and covert to greyscale**</br>
+then save to './preprocess' with original path structure remained.
+### usage
+```
+python imagepreprocess.py [-s sourcefolder[default=./dest]] [-p preprocess[default:./preprocess]]
+```
+
+# trainmodel.py
+
+### usage
+```
+python trainmodel.py [-f folder containing training (default:./preprocess)[-s name_to_save_model] [-l name_to_load_model]
 ```
 will automatic load/save with overwrite to ./model/model.h5 unless specifying model name
 
