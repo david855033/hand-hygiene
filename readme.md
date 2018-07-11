@@ -4,7 +4,7 @@
 Extract images from all video in "./videosrc" folder,</br>
 then sort the result images into one of the following 7 categories:</br>
  'palm', 'handback', 'finger', 'hook', 'thumb', 'tip', 'wrist'.
-The destiny folder is ./dest/[category_name].
+The destiny folder is ./dest/[category_name].</br>
 **NOTE: the filename of the video must contain a category name!**
 ### usage
 ```
@@ -21,13 +21,16 @@ python imagepreprocess.py [-s sourcefolder[default=./dest]] [-p preprocess[defau
 ```
 
 # trainmodel.py
-
+### description
+load image from "./preprocess"</br>
+the images must have be sorted in to default 7 categories by folders.</br>
+train a model for image classification task</br>
+then save the model to './models/model.h5'.</br>
+By default, if the model exists, this trainer will load the exsisted model to continue weight training, then overwrite it after training. 
 ### usage
 ```
-python trainmodel.py [-f folder containing training (default:./preprocess)[-s name_to_save_model] [-l name_to_load_model]
+python trainmodel.py [-f folder(default:'./preprocess')[-s name_to_save_model] [-l name_to_load_model]
 ```
-will automatic load/save with overwrite to ./model/model.h5 unless specifying model name
-
 ### tensorboard
 use the following command to show tensorboard during training
 ```

@@ -27,5 +27,6 @@ def imgPreprocess(source_path, preprocess_path):
             img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
             # ---end convert
             cv2.imwrite(img_to, img)
-            print("> preprocessing: {0}->{1}".format(img_from, img_to), end="\r")
+            print(
+                "> preprocessing {0}: {0}->{1}".format(name, root, root_to), end="\r")
     print("")
