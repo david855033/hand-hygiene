@@ -1,6 +1,7 @@
 import cv2
 import os
 from os.path import isdir, isfile, join, splitext
+from preprocess_module import preprocess
 
 
 def imgPreprocess(source_path, preprocess_path):
@@ -23,10 +24,10 @@ def imgPreprocess(source_path, preprocess_path):
             if not os.path.exists(root_to):
                 os.makedirs(root_to)
             # ---start convert
-            img = cv2.resize(img, (128, 128))
-            img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+            img = preprocess(img)
             # ---end convert
             cv2.imwrite(img_to, img)
             print(
-                "> preprocessing {0}: {0}->{1}".format(name, root, root_to), end="\r")
+                "> preprocessing {0}: {0}->{1}".format(name, root, root_to),
+                end="\r")
     print("")
