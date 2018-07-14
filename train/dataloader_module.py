@@ -14,7 +14,6 @@ def loadImgs(preprocess_dir=join(os.getcwd(), "preprocess")):
     x_test = []
     y_test = []
     i = 0
-
     for action in action_dictionary:
         dir_path = join(preprocess_dir, action)
         if not os.path.exists(dir_path):
@@ -24,11 +23,7 @@ def loadImgs(preprocess_dir=join(os.getcwd(), "preprocess")):
         imgs = list(img for img in imgs if isfile(img))
         print(" -> {0} imgs".format(len(imgs)))
         for img in imgs:
-            if np.random.rand(1) > 0.2:
                 x_train.append(cv2.imread(img, 0))
                 y_train.append(i)
-            else:
-                x_test.append(cv2.imread(img, 0))
-                y_test.append(i)
         i += 1
-    return (x_train, y_train), (x_test, y_test)
+    return (x_train, y_train)

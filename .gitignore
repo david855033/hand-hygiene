@@ -115,3 +115,5 @@ my-note.md
 /tmp
 *.ipynb
 *.h5
+
+data/

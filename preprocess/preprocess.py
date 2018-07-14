@@ -1,0 +1,41 @@
+import cv2
+from os import listdir
+from os.path import isfile, join, splitext, basename
+from share.file_util import check_action_folder
+from share.global_setting import ACTIONS
+
+
+def preprocess_folder(source_path, preprocess_path):
+    print('\n[Preprocess from folder]')
+    print(' >> source: {0}'.format(source_path))
+    print(' >> destiny: {0}'.format(preprocess_path))
+
+    check_action_folder(preprocess_path)
+
+    for action in ACTIONS:
+        source_path_action = join(source_path, action)
+        dest_path_action = join(preprocess_path, action)
+
+        for filepath in (f for f in listdir(source_path_action)):
+
+            filename, file_extention = splitext(filepath)
+            if file_extention.lower() != ".jpg":
+                continue
+
+            img_source_path = join(source_path_action, filepath)
+            img_dest_path = join(dest_path_action, filepath)
+
+            img = cv2.imread(img_source_path)
+            img = preprocess_img(img)
+            cv2.imwrite(img_dest_path, img)
+
+            print(
+                " >> -- preprocessing: {0}->{1}".format(
+                    filepath, dest_path_action)+" "*20,
+                end="\r")
+
+
+def preprocess_img(image):
+    img = cv2.resize(image, (128, 128))
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    return img

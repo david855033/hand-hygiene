@@ -16,6 +16,7 @@ model = parser.parse_args().model
 image = loadImage(img_source)
 preprocess_image = preprocess(image)
 preprocess_image_to_model = np.reshape(preprocess_image, (1, 128, 128, 1))
+
 result = predict(model, preprocess_image_to_model)
 
 imageResize = cv2.resize(image, (256, 256))

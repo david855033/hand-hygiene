@@ -18,11 +18,11 @@ def train(source_path=join(os.getcwd(), "preprocess"),
           model_save_name="model",
           model_load_name="model"):
 
-    (x_train, y_train), (x_test, y_test) = loadImgs(source_path)
+    (x_train, y_train) = loadImgs(source_path)
 
     input_shape = (128, 128, 1)
     batch_size = 32
-    epochs = 12
+    epochs = 2
     num_classes = len(action_dictionary)
 
     x_train = np.array(x_train).astype('float32')
@@ -30,10 +30,8 @@ def train(source_path=join(os.getcwd(), "preprocess"),
     x_train = x_train.reshape(x_train.shape[0], 128, 128, 1)
     y_train = keras.utils.to_categorical(y_train, num_classes)
 
-    x_test = np.array(x_test).astype('float32')
-    x_test /= 255
-    x_test = x_test.reshape(x_test.shape[0], 128, 128, 1)
-    y_test = keras.utils.to_categorical(y_test, num_classes)
+    # print(y_train)
+    # input("Press Enter to continue...")
 
     model = object()
 
@@ -65,7 +63,7 @@ def train(source_path=join(os.getcwd(), "preprocess"),
               batch_size=batch_size,
               epochs=epochs,
               verbose=1,
-              validation_data=(x_test, y_test),
+              validation_split=0.2,
               callbacks=[TensorBoard(log_dir='./tmp/')])
 
     if model_save_name != "":
