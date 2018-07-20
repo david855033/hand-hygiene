@@ -11,7 +11,7 @@ def preprocess_folder(source_path, preprocess_path):
     print(' >> destiny: {0}'.format(preprocess_path))
 
     check_action_folder(preprocess_path)
-
+    count = 0
     for action in ACTIONS:
         source_path_action = join(source_path, action)
         dest_path_action = join(preprocess_path, action)
@@ -28,11 +28,12 @@ def preprocess_folder(source_path, preprocess_path):
             img = cv2.imread(img_source_path)
             img = preprocess_img(img)
             cv2.imwrite(img_dest_path, img)
-
             print(
-                " >> -- preprocessing: {0}->{1}".format(
+                " >> preprocessing: {0}->{1}".format(
                     filepath, dest_path_action)+" "*20,
                 end="\r")
+            count += 1
+    print("{0} imgs were preprocessed.".format(count))
 
 
 def preprocess_img(image):
