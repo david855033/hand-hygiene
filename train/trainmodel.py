@@ -24,7 +24,7 @@ def trainmodel(source_path, model_save_path):
               " exsists, press Enter to overwrite. " +
               "Press Ctrl+C and Enter to Abort.")
     batch_size = 32
-    epochs = 1
+    epochs = 6
     num_classes = len(ACTIONS)
     model = create_model()
 
@@ -47,6 +47,7 @@ def trainmodel(source_path, model_save_path):
 
 def loadImgs(source_path):
     x_train, y_train = [], []
+    count = 0
     i = 0
     for action in ACTIONS:
         action_folder_path = join(source_path, action)
@@ -55,8 +56,9 @@ def loadImgs(source_path):
         for img in imgs:
             x_train.append(cv2.imread(img, 0))
             y_train.append(i)
+            count += 1
         i += 1
         print(" >> Loading {0} imgs from:".format(len(imgs)) +
               action_folder_path)
-    print(" >> total: {0} labeled imgs".format(i))
+    print(" >> total: {0} labeled imgs".format(count))
     return x_train, y_train

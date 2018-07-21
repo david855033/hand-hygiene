@@ -37,17 +37,24 @@ python preprocess.py
 
 ## train.py
 ### description
-load image from "./preprocess"</br>
+load image from "./data/preprocess"</br>
 the images must have be sorted in to default 7 categories by folders.</br>
 train a model for image classification task</br>
-then save the model to './models/model.h5'.</br>
-By default, if the model exists, this trainer will load the exsisted model to continue weight training, then overwrite it after training. 
+then save the model to './data/model/model.h5'.</br>
+By default, if the model exists, this trainer will overwrite it with a newly trained model. 
 ### usage
 ```
-python trainmodel.py [-f folder(default:'./preprocess')[-s name_to_save_model] [-l name_to_load_model]
+python train.py 
 ```
 ### tensorboard
 use the following command to show tensorboard during training
 ```
 tensorboard --logdir=./tmp
 ```
+
+## predict_folder.py
+### description
+use trained model and randomly loaded images in ./data/extract, 
+to demo prediction result
+### usage
+python predict_folder.py
