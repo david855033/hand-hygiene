@@ -1,26 +1,41 @@
-# Hand-Hygiene
-## extractfolder.py
+# Hand-Hygiene Project
+We are building a real-time, 24 hours a day monitoring system which gives instant feedback on hand-washing process.
+This system is a proof of concept powered by deep learning-based computer vision technology and is feasible to implement in clinical setting.
+
+## Data pipline
+**all data are put in the folder: ./data**
+```
+src video: ./data/videosrc
+-> extract.py
+-> extracted frame: ./data/extract
+-> preprocess.py
+-> preprocessed frame: ./data/preprocess
+-> train.py
+-> generated Keras model: ./data/model
+```
+
+## extract.py
 ### description
-Extract images from all video in "./videosrc" folder,</br>
-then sort the result images into one of the following 7 categories:</br>
- 'palm', 'handback', 'finger', 'hook', 'thumb', 'tip', 'wrist'.
-The destiny folder is ./dest/[category_name].</br>
+Extract images from videos in "./data/videosrc" folder,</br>
+then classify the images into one of the following 7 categories:</br>
+ 'palm', 'handback', 'finger', 'hook', 'thumb', 'tip', 'wrist' according to the video filename.
+The destiny folder is ./data/extract/[category_name].</br>
 **NOTE: the filename of the video must contain a category name!**
 ### usage
 ```
-python extractfolder.py [-s srcfolder (default='.\videosrc')] [-f destfolder (default='.\dest')] [-n max_img_number="default=0(no restriction)"] [-r extract_ratio(default=5)]
+python extract.py
 ```
-## imgpreprocess.py
+## preprocess.py
 ### description
-Load images from ".dest", and do default image preprocessing:</br>
-**resize to 128x128 and covert to greyscale**</br>
-then save to './preprocess' with original path structure remained.
+Load images from "./data/extract", and perform image preprocessing:</br>
+**resize to 128x128 and covert to greyscale.**</br>
+Save preprocessed images to './data/preprocess'
 ### usage
 ```
-python imagepreprocess.py [-s sourcefolder[default=./dest]] [-p preprocess[default:./preprocess]]
+python preprocess.py
 ```
 
-# trainmodel.py
+## train.py
 ### description
 load image from "./preprocess"</br>
 the images must have be sorted in to default 7 categories by folders.</br>

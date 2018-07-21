@@ -1,1 +1,0 @@
-def predict(modle, imagesource):
