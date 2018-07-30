@@ -112,7 +112,7 @@ venv.bak/
 /.vscode
 my-note.md
 
-/tmp
+tmp/
 *.ipynb
 *.h5
 
