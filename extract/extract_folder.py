@@ -44,11 +44,12 @@ def extract(video_path, dest_folder, max_img_number, extract_ratio):
     while(success):
         success, frame = cap.read()
         if success:
-            filepath = join(dest_folder, video_filename+r"%04d.jpg" % count)
+            filepath = join(dest_folder, video_filename + r"%04d.jpg" % count)
             # save 1 img every (extract_ratio) frame
             if extract_ratio == 0 or i % extract_ratio == 0:
                 print(' >> -- processing: {0}'.format(
                     filepath), end="\r", flush=True)
+
                 cv2.imwrite(filepath, frame)
                 count += 1
             i += 1
