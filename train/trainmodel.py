@@ -25,6 +25,7 @@ def trainmodel(source_path, model_save_path):
         file_path = os.path.join(augment_path, the_file)
         try:
             if os.path.isfile(file_path):
+                os.unlink(file_path)
         except Exception as e:
             print(e)
 
