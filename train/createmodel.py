@@ -15,7 +15,8 @@ def create_model():
 
     base_model = VGG19(weights='imagenet', include_top=False,
                        input_shape=input_shape)
-    for layer in base_model.layers[:8]:
+    keras.utils.print_summary(base_model)
+    for layer in base_model.layers[:14]:
         layer.trainable = False
     model = Model(inputs=base_model.input,
                   outputs=base_model.get_layer('block2_pool').output)

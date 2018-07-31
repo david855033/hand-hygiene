@@ -6,7 +6,7 @@ from share.global_setting import ACTIONS
 from share.file_util import checkfolder
 import cv2
 from train.createmodel import create_model
-from keras.models import load_model
+from keras.models import load_model, Model
 from keras.callbacks import TensorBoard
 from keras.preprocessing.image import ImageDataGenerator, img_to_array, load_img
 import keras
@@ -35,10 +35,9 @@ def trainmodel(source_path, model_save_path):
               .format(model_save_path) +
               " exsists, press Enter to overwrite. " +
               "Press Ctrl+C and Enter to Abort.")
-    batch_size = 64
+    batch_size = 128
     epochs = 1200
     num_classes = len(ACTIONS)
-    model = create_model()
 
     x_train, y_train, x_val, y_val, x_test, y_test = loadImgs(source_path)
     x_train = np.array(x_train).astype('float32')
@@ -81,6 +80,7 @@ def trainmodel(source_path, model_save_path):
         if i > 20:
             break
 
+    model = create_model()
     model.fit_generator(
         datagen.flow(x_train, y_train, batch_size=batch_size),
         steps_per_epoch=int(len(x_train) / batch_size),
@@ -95,7 +95,7 @@ def trainmodel(source_path, model_save_path):
     model.save(model_save_path, overwrite=True)
 
 
-def loadImgs(source_path, setcount=1, valcount=0, testcount=0, ):
+def loadImgs(source_path, setcount=8, valcount=2, testcount=1, ):
     x_train, y_train, x_val, y_val, x_test, y_test = [], [], [], [], [], []
     count = 0
     i = 0
