@@ -35,7 +35,7 @@ def trainmodel(source_path, model_save_path):
               .format(model_save_path) +
               " exsists, press Enter to overwrite. " +
               "Press Ctrl+C and Enter to Abort.")
-    batch_size = 512
+    batch_size = 64
     epochs = 1200
     num_classes = len(ACTIONS)
     model = create_model()
@@ -43,17 +43,17 @@ def trainmodel(source_path, model_save_path):
     x_train, y_train, x_val, y_val, x_test, y_test = loadImgs(source_path)
     x_train = np.array(x_train).astype('float32')
     x_train /= 255
-    x_train = x_train.reshape(x_train.shape[0], 128, 128, 1)
+    x_train = x_train.reshape(x_train.shape[0], 224, 224, 3)
     y_train = keras.utils.to_categorical(y_train, num_classes)
 
     x_val = np.array(x_val).astype('float32')
     x_val /= 255
-    x_val = x_val.reshape(x_val.shape[0], 128, 128, 1)
+    x_val = x_val.reshape(x_val.shape[0], 224, 224, 3)
     y_val = keras.utils.to_categorical(y_val, num_classes)
 
     x_test = np.array(x_test).astype('float32')
     x_test /= 255
-    x_test = x_test.reshape(x_test.shape[0], 128, 128, 1)
+    x_test = x_test.reshape(x_test.shape[0], 224, 224, 3)
     y_test = keras.utils.to_categorical(y_test, num_classes)
 
     print("train N={0}, val N={1}, test N={2}".format(
@@ -80,10 +80,10 @@ def trainmodel(source_path, model_save_path):
         i += 1
         if i > 20:
             break
-    
+
     model.fit_generator(
         datagen.flow(x_train, y_train, batch_size=batch_size),
-        steps_per_epoch=int(len(x_train)/batch_size),
+        steps_per_epoch=int(len(x_train) / batch_size),
         epochs=epochs,
         verbose=1,
         validation_data=(x_val, y_val),
@@ -95,14 +95,14 @@ def trainmodel(source_path, model_save_path):
     model.save(model_save_path, overwrite=True)
 
 
-def loadImgs(source_path, setcount=6, valcount=1, testcount=1, ):
+def loadImgs(source_path, setcount=1, valcount=0, testcount=0, ):
     x_train, y_train, x_val, y_val, x_test, y_test = [], [], [], [], [], []
     count = 0
     i = 0
-    set_index = list(range(1, setcount+1))
+    set_index = list(range(1, setcount + 1))
     random.shuffle(set_index)
     testset = set_index[0:testcount]
-    valset = set_index[setcount-valcount:]
+    valset = set_index[setcount - valcount:]
 
     for action in ACTIONS:
         action_folder_path = join(source_path, action)
@@ -110,13 +110,19 @@ def loadImgs(source_path, setcount=6, valcount=1, testcount=1, ):
                     for img in listdir(action_folder_path))
         for img in imgs:
             if int(split(img.split("_")[0])[1]) in testset:
-                x_test.append(cv2.imread(img, 0))
+                toAppend = cv2.imread(img)
+                toAppend = cv2.cvtColor(toAppend, cv2.COLOR_BGR2RGB)
+                x_test.append(toAppend)
                 y_test.append(i)
             elif int(split(img.split("_")[0])[1]) in valset:
-                x_val.append(cv2.imread(img, 0))
+                toAppend = cv2.imread(img)
+                toAppend = cv2.cvtColor(toAppend, cv2.COLOR_BGR2RGB)
+                x_val.append(toAppend)
                 y_val.append(i)
             else:
-                x_train.append(cv2.imread(img, 0))
+                toAppend = cv2.imread(img)
+                toAppend = cv2.cvtColor(toAppend, cv2.COLOR_BGR2RGB)
+                x_train.append(toAppend)
                 y_train.append(i)
             count += 1
         i += 1

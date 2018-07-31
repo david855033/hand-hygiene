@@ -30,13 +30,12 @@ def preprocess_folder(source_path, preprocess_path):
             cv2.imwrite(img_dest_path, img)
             print(
                 " >> preprocessing: {0}->{1}".format(
-                    filepath, dest_path_action)+" "*20,
+                    filepath, dest_path_action) + " " * 20,
                 end="\r")
             count += 1
-    print("{0} imgs were preprocessed.".format(count))
+    print("\n{0} imgs were preprocessed.".format(count))
 
 
 def preprocess_img(image):
-    img = cv2.resize(image, (128, 128))
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    img = cv2.resize(image, (224, 224))
     return img
