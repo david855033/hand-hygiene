@@ -87,7 +87,7 @@ def trainmodel(source_path, model_save_path):
         epochs=epochs,
         verbose=1,
         validation_data=(x_val, y_val),
-        callbacks=[TensorBoard(log_dir='./tmp/')])  # batch_size)
+        callbacks=[TensorBoard(log_dir='./tmp/32d/')])  # batch_size)
 
     score = model.evaluate(x_test, y_test)
     print('Test loss:', score[0])
@@ -95,7 +95,7 @@ def trainmodel(source_path, model_save_path):
     model.save(model_save_path, overwrite=True)
 
 
-def loadImgs(source_path, setcount=8, valcount=2, testcount=1, ):
+def loadImgs(source_path, setcount=8, valcount=2, testcount=0):
     x_train, y_train, x_val, y_val, x_test, y_test = [], [], [], [], [], []
     count = 0
     i = 0
