@@ -22,18 +22,18 @@ def create_model():
                   outputs=base_model.get_layer('block4_pool').output)
     x = model.output
     x = BatchNormalization()(x)
-    x = Conv2D(filters=32, kernel_size=(1, 1),
+    x = Conv2D(filters=24, kernel_size=(1, 1),
                activation='relu', padding='same',
                use_bias=False)(x)
-    x = Conv2D(filters=32, kernel_size=(3, 3),
+    x = Conv2D(filters=24, kernel_size=(3, 3),
                activation='relu', padding='same')(x)
-    x = Conv2D(filters=32, kernel_size=(3, 3),
+    x = Conv2D(filters=24, kernel_size=(3, 3),
                activation='relu', padding='same')(x)
-    x = Conv2D(filters=32, kernel_size=(3, 3),
+    x = Conv2D(filters=24, kernel_size=(3, 3),
                activation='relu', padding='same')(x)
     x = MaxPooling2D(pool_size=(2, 2))(x)
     x = Flatten()(x)
-    x = Dense(32, activation='relu')(x)
+    x = Dense(24, activation='relu')(x)
     x = Dropout(0.5)(x)
     x = Dense(num_classes, activation='softmax')(x)
     model = Model(input=model.input, output=x)
