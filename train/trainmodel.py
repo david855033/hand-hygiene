@@ -13,7 +13,7 @@ import keras
 import random
 
 
-def trainmodel(source_path, model_save_path):
+def trainmodel(source_path, model_save_path, model_autosave_path):
     print('\n[train model]')
     print(' >> traning data src: {0}'.format(source_path))
     print(' >> model destination: {0}'.format(model_save_path))
@@ -36,7 +36,7 @@ def trainmodel(source_path, model_save_path):
               " exsists, press Enter to overwrite. " +
               "Press Ctrl+C and Enter to Abort.")
     batch_size = 128
-    epochs = 150
+    epochs = 300
     num_classes = len(ACTIONS)
 
     x_train, y_train, x_val, y_val, x_test, y_test = loadImgs(source_path)
@@ -84,25 +84,30 @@ def trainmodel(source_path, model_save_path):
     model.fit_generator(
         datagen.flow(x_train, y_train, batch_size=batch_size),
         steps_per_epoch=int(len(x_train) / batch_size),
-        epochs=epochs,
-        verbose=1,
-        validation_data=(x_val, y_val),
-        callbacks=[TensorBoard(log_dir='./tmp/set9_d24')])  # batch_size)
+        epochs=epochs, verbose=1, validation_data=(x_val, y_val),
+        callbacks=[TensorBoard(log_dir='./tmp/set15_d24_run2'),
+                   keras.callbacks.ModelCheckpoint(
+                       model_autosave_path, monitor='val_acc', mode='max',
+                       verbose=1, save_best_only=True, period=5)])
 
-    score = model.evaluate(x_test, y_test)
+    model.save(model_save_path, overwrite=True)
+    if len(x_test) > 0:
+        score = model.evaluate(x_test, y_test)
     print('Test loss:', score[0])
     print('Test accuracy:', score[1])
-    model.save(model_save_path, overwrite=True)
 
 
-def loadImgs(source_path, setcount=9, valcount=2, testcount=0):
+def loadImgs(source_path, setcount=15, valcount=3, testcount=0):
     x_train, y_train, x_val, y_val, x_test, y_test = [], [], [], [], [], []
     count = 0
     i = 0
     set_index = list(range(1, setcount + 1))
     random.shuffle(set_index)
-    testset = set_index[0:testcount]
-    valset = set_index[setcount - valcount:]
+    traincount = setcount - testcount - valcount
+
+    trainset = set_index[0:traincount]
+    valset = set_index[traincount:traincount+valcount]
+    testset = set_index[traincount+valcount:traincount+valcount+testcount]
 
     for action in ACTIONS:
         action_folder_path = join(source_path, action)
@@ -119,7 +124,7 @@ def loadImgs(source_path, setcount=9, valcount=2, testcount=0):
                 toAppend = cv2.cvtColor(toAppend, cv2.COLOR_BGR2RGB)
                 x_val.append(toAppend)
                 y_val.append(i)
-            else:
+            elif int(split(img.split("_")[0])[1]) in trainset:
                 toAppend = cv2.imread(img)
                 toAppend = cv2.cvtColor(toAppend, cv2.COLOR_BGR2RGB)
                 x_train.append(toAppend)

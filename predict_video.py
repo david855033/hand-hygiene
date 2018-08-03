@@ -9,4 +9,5 @@ parser.add_argument("-m", help="model path",
                     default=r".\data\model\model.h5", dest="model_path")
 
 args = parser.parse_args()
-predict_video(model_path=args.model_path, video_path=args.video_path)
+predict_video(model_path=args.model_path, video_path=args.video_path, flip=0)
+# flip: 0 = vertical, 1=horizontal, -1 = ver&horizontal, -2=none

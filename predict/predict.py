@@ -1,14 +1,14 @@
 import cv2
 import os
 import numpy as np
-from os.path import join
+from os.path import join, split
 from keras.models import load_model
 from share.global_setting import ACTIONS
 from preprocess.preprocess import preprocess_img
 from random import shuffle
 
 
-def predict_folder(model_path, img_folder):
+def predict_folder(model_path, img_folder, assign_set=[]):
     print('\n[Predict imgs in a folder]')
     print(' >> model_path: {0}'.format(model_path))
     print(' >> img_folder: {0}'.format(img_folder))
@@ -18,7 +18,8 @@ def predict_folder(model_path, img_folder):
     for root, dirs, files in os.walk(img_folder):
         for file in files:
             path = join(root, file)
-            img_list.append(path)
+            if len(assign_set) == 0 or int(file.split("_")[0]) in assign_set:
+                img_list.append(path)
 
     # 隨機選20張圖做測試
     shuffle(img_list)
@@ -32,20 +33,18 @@ def predict_folder(model_path, img_folder):
                 break
 
         img = cv2.imread(path)
-        preprocessed_img = preprocess_img(img)
+        preprocessed_img = np.array(preprocess_img(img))
 
-        data = np.reshape(preprocessed_img, (1, 128, 128, 1))
+        data = np.reshape(preprocessed_img, (1,) + preprocessed_img.shape)
         predict_result = model.predict(data)
 
         resultText, prediction = parse_predict(predict_result, ground_truth)
 
-        preprocess_toshow = cv2.cvtColor(
-            cv2.resize(preprocessed_img, (128, 128)),
-            cv2.COLOR_GRAY2BGR)
+        img_toshow = cv2.resize(img, (128, 128))
+        preprocess_toshow = cv2.resize(preprocessed_img, (128, 128))
+        putText(preprocess_toshow, resultText, prediction, ground_truth)
 
-        putText(preprocess_toshow, resultText,  prediction, ground_truth)
-
-        result = np.hstack((cv2.resize(img, (128, 128)), preprocess_toshow))
+        result = np.hstack((img_toshow, preprocess_toshow))
         results.append(result)
     print()
 
@@ -78,8 +77,8 @@ def parse_predict(predict_result, ground_truth=""):
     resultText.append("prediction: "+prediction)
     if ground_truth != "":
         resultText.append('ground_truth:'+ground_truth)
-    for r in predict_result.astype('str'):
-        resultText.append(ACTIONS[i]+":"+r)
+    for r in predict_result:
+        resultText.append(ACTIONS[i]+":" + "%.3f" % r)
         i += 1
     return resultText, prediction
 
@@ -103,7 +102,7 @@ def putText(preprocess_toshow, resultText, prediction, ground_truth="",
         y += dy
 
 
-def predict_video(model_path, video_path):
+def predict_video(model_path, video_path, flip=-2):
     print('\n[Predict frames while playing video]')
     print(' >> model_path: {0}'.format(model_path))
     print(' >> video_path: {0}'.format(video_path))
@@ -118,14 +117,15 @@ def predict_video(model_path, video_path):
         ret, frame = capture.read()
 
         # Our operations on the frame come here
-        frame_resize = cv2.resize(frame, (128, 128))
-        preprocess_frame = preprocess_img(frame_resize)
+        preprocess_frame = preprocess_img(frame)
+        if flip != -2:
+            preprocess_frame = cv2.flip(preprocess_frame, flip)
 
-        data = np.reshape(preprocess_frame, (1, 128, 128, 1))
+        data = np.reshape(preprocess_frame, (1,)+preprocess_frame.shape)
         predict_result = model.predict(data)
         resultText, prediction = parse_predict(predict_result)
 
-        frame_toshow = cv2.resize(frame, (256, 256))
+        frame_toshow = cv2.resize(preprocess_frame, (224, 224))
         putText(frame_toshow, resultText,  prediction,
                 fontScale=0.5, lineType=1, dy=15)
 
