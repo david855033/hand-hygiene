@@ -20,53 +20,62 @@ def predict_folder(model_path, img_folder, assign_set=[]):
             path = join(root, file)
             if len(assign_set) == 0 or int(file.split("_")[0]) in assign_set:
                 img_list.append(path)
+    while True:
+        # 隨機選20張圖做測試
+        shuffle(img_list)
+        results = []
+        for path in img_list[:20]:
+            print(path+" "*20, end="\r")
+            ground_truth = 'unidentified'
+            for action in ACTIONS:
+                if(action.lower() in path.lower()):
+                    ground_truth = action.lower()
+                    break
 
-    # 隨機選20張圖做測試
-    shuffle(img_list)
-    results = []
-    for path in img_list[:20]:
-        print(path+" "*20, end="\r")
-        ground_truth = 'unidentified'
-        for action in ACTIONS:
-            if(action.lower() in path.lower()):
-                ground_truth = action.lower()
-                break
+            img = cv2.imread(path)
+            preprocessed_img = preprocess_img(img)
+            preprocessed_img = cv2.cvtColor(preprocessed_img,
+                                            cv2.COLOR_BGR2RGB)
+            preprocessed_img = np.array(preprocessed_img).astype('float32')
+            preprocessed_img /= 255
 
-        img = cv2.imread(path)
-        preprocessed_img = np.array(preprocess_img(img))
+            data = np.reshape(preprocessed_img, (1,) + preprocessed_img.shape)
+            predict_result = model.predict(data)
 
-        data = np.reshape(preprocessed_img, (1,) + preprocessed_img.shape)
-        predict_result = model.predict(data)
+            resultText, prediction = parse_predict(predict_result,
+                                                   ground_truth)
 
-        resultText, prediction = parse_predict(predict_result, ground_truth)
+            img_toshow = cv2.resize(img, (128, 128))
 
-        img_toshow = cv2.resize(img, (128, 128))
-        preprocess_toshow = cv2.resize(preprocessed_img, (128, 128))
-        putText(preprocess_toshow, resultText, prediction, ground_truth)
+            result_area = np.zeros((128, 128, 3), np.uint8)
+            putText(result_area, resultText, prediction, ground_truth)
 
-        result = np.hstack((img_toshow, preprocess_toshow))
-        results.append(result)
-    print()
+            result = np.hstack((img_toshow, result_area))
 
-    concated = []
-    col = []
-    i = 0
-    for result in results:
-        if i == 0:
-            col = result
-        else:
-            col = np.vstack((col, result))
-        i += 1
-        if i % 5 == 0:
-            if len(concated) == 0:
-                concated = col
+            results.append(result)
+        print()
+
+        concated = []
+        col = []
+        i = 0
+        for result in results:
+            if i == 0:
+                col = result
             else:
-                concated = np.hstack((concated, col))
-            col = []
-            i = 0
+                col = np.vstack((col, result))
+            i += 1
+            if i % 5 == 0:
+                if len(concated) == 0:
+                    concated = col
+                else:
+                    concated = np.hstack((concated, col))
+                col = []
+                i = 0
 
-    cv2.imshow('result', concated)
-    cv2.waitKey(0)
+        cv2.imshow('result', concated)
+        if cv2.waitKey(5000) & 0xFF == ord('q'):
+            break
+    cv2.destroyAllWindows()
 
 
 def parse_predict(predict_result, ground_truth=""):
@@ -121,11 +130,16 @@ def predict_video(model_path, video_path, flip=-2):
         if flip != -2:
             preprocess_frame = cv2.flip(preprocess_frame, flip)
 
+        preprocess_frame = cv2.cvtColor(preprocess_frame,
+                                        cv2.COLOR_BGR2RGB)
+        preprocess_frame = np.array(preprocess_frame).astype('float32')
+        preprocess_frame /= 255
+
         data = np.reshape(preprocess_frame, (1,)+preprocess_frame.shape)
         predict_result = model.predict(data)
         resultText, prediction = parse_predict(predict_result)
 
-        frame_toshow = cv2.resize(preprocess_frame, (224, 224))
+        frame_toshow = cv2.resize(frame, (224, 224))
         putText(frame_toshow, resultText,  prediction,
                 fontScale=0.5, lineType=1, dy=15)
 

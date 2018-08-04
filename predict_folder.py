@@ -11,4 +11,4 @@ parser.add_argument("-m", help="model path",
 args = parser.parse_args()
 predict_folder(
     model_path=args.model_path, img_folder=args.img_folder,
-    assign_set=[5, 6, 1])
+    assign_set=[1, 5, 13])
