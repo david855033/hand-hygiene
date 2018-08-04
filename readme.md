@@ -58,3 +58,7 @@ use trained model and randomly loaded images in ./data/extract,
 to demo prediction result
 ### usage
 python predict_folder.py
+
+### flask server
+$env:FLASK_APP = "server.py"
+flask run
