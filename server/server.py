@@ -40,17 +40,6 @@ def job():
             print(e)
             socketio.sleep(2)
 
-    # while True:
-    #     ret, frame = webcam.read()
-    #     _, img_encoded = cv2.imencode('.jpg', frame)
-    #     # with app.app_context():
-    #     #     socketio.emit('image', base64.b64encode(img_encoded).decode())
-    #     cv2.imshow('window', frame)
-    #     socketio.sleep(0.5)
-
-    # webcam.release()
-    # cv2.destroyAllWindows()
-
 
 t = threading.Thread(target=job)
 t.setDaemon(True)
