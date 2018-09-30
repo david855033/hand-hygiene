@@ -1,18 +1,30 @@
 from flask import Flask, render_template, Response
 from flask_socketio import SocketIO, send, emit
 import cv2
+import numpy as np
 import threading
 import base64
 from video import VideoGet, VideoShow
+from keras.models import load_model
+
+import os
+import sys
+import inspect
+current_dir = os.path.dirname(os.path.abspath(
+    inspect.getfile(inspect.currentframe())))
+parent_dir = os.path.dirname(current_dir)
+sys.path.insert(0, parent_dir)
+from preprocess.preprocess import preprocess_img
+from share.global_setting import ACTIONS
+from predict.predict import parse_predict
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
 socketio = SocketIO(app)
 
 
-@app.route('/')  # 主頁
+@app.route('/')
 def index():
-        # jinja2模板，具體格式保存在yemplates/index.html文檔中
     return render_template('index.html')
 
 
@@ -21,24 +33,38 @@ def handle_message(message):
     print('received message: ' + message)
 
 
-camera = VideoGet(1)
+camera = VideoGet('server/test.MOV')
 camera.start()
 
 # video_shower = VideoShow(camera.frame).start()
 
 
 def job():
+    model = load_model('.\data\model\model.h5')
     while True:
         try:
             frame = camera.frame
-            # video_shower.frame = frame
-            success, img_encoded = cv2.imencode('.jpg', frame)
+
+            preprocess_frame = preprocess_img(frame)
+            toshow = preprocess_frame
+            preprocess_frame = cv2.cvtColor(preprocess_frame,
+                                            cv2.COLOR_BGR2RGB)
+            preprocess_frame = np.array(preprocess_frame).astype('float32')
+            preprocess_frame /= 255
+            data = np.reshape(preprocess_frame, (1,)+preprocess_frame.shape)
+            predict_result = model.predict(data)
+            resultText, prediction = parse_predict(predict_result)
+
+            success, img_encoded = cv2.imencode('.jpg', toshow)
+
             with app.app_context():
-                socketio.emit('image', base64.b64encode(img_encoded).decode())
-            socketio.sleep(0.1)
+                socketio.emit('image', {'image': base64.b64encode(
+                    img_encoded).decode(), 'prediction': prediction})
+
+            socketio.sleep(0.1)  # control frame rate
         except Exception as e:
             print(e)
-            socketio.sleep(2)
+            socketio.sleep(0.1)
 
 
 t = threading.Thread(target=job)

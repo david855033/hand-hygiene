@@ -72,6 +72,7 @@ def trainmodel(source_path, model_save_path, model_autosave_path):
     preview_img = x_train[0]
     preview_img = img_to_array(preview_img)
     preview_img = preview_img.reshape((1,) + preview_img.shape)
+    # save some preview img of augmented data
     for batch in datagen.flow(
             preview_img,
             batch_size=1, save_to_dir='data/augment', save_prefix='preview',

@@ -41,13 +41,12 @@ def predict_folder(model_path, img_folder, assign_set=[]):
 
             data = np.reshape(preprocessed_img, (1,) + preprocessed_img.shape)
             predict_result = model.predict(data)
-
-            resultText, prediction = parse_predict(predict_result,
-                                                   ground_truth)
-
+            resultText, prediction = parse_predict(predict_result)
+            
             img_toshow = cv2.resize(img, (128, 128))
 
             result_area = np.zeros((128, 128, 3), np.uint8)
+
             putText(result_area, resultText, prediction, ground_truth)
 
             result = np.hstack((img_toshow, result_area))

@@ -5,13 +5,15 @@ This system is a proof of concept powered by deep learning-based computer vision
 ## Data pipline
 **all data are put in the folder: ./data**
 ```
-src video: ./data/videosrc
+put src video in: ./data/videosrc
 -> extract.py
--> extracted frame: ./data/extract
+--> extracted frame: ./data/extract
+
 -> preprocess.py
--> preprocessed frame: ./data/preprocess
+--> preprocessed frame: ./data/preprocess
+
 -> train.py
--> generated Keras model: ./data/model
+--> generated Keras model: ./data/model
 ```
 
 ## extract.py
@@ -60,5 +62,5 @@ to demo prediction result
 python predict_folder.py
 
 ### flask server
-$env:FLASK_APP = "server.py"
+$env:FLASK_APP = "./server/server.py"
 flask run

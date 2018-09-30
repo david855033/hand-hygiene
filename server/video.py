@@ -23,6 +23,9 @@ class VideoGet:
                 self.stop()
             else:
                 (self.grabbed, self.frame) = self.stream.read()
+                if not self.grabbed:
+                    self.stream.set(cv2.CAP_PROP_POS_FRAMES, 0)
+                    (self.grabbed, self.frame) = self.stream.read()
 
     def stop(self):
         self.stopped = True
