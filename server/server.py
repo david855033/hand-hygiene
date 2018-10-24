@@ -33,14 +33,18 @@ def handle_message(message):
     print('received message: ' + message)
 
 
-camera = VideoGet('server/test.MOV')
+camera = VideoGet(2)
 camera.start()
 
 # video_shower = VideoShow(camera.frame).start()
 
+DO_PREDICT = False
+
 
 def job():
-    model = load_model('.\data\model\model.h5')
+    model = object()
+    if DO_PREDICT:
+        model = load_model('.\data\model\model.h5')
     while True:
         try:
             frame = camera.frame
@@ -52,8 +56,11 @@ def job():
             preprocess_frame = np.array(preprocess_frame).astype('float32')
             preprocess_frame /= 255
             data = np.reshape(preprocess_frame, (1,)+preprocess_frame.shape)
-            predict_result = model.predict(data)
-            resultText, prediction = parse_predict(predict_result)
+
+            prediction = ""
+            if DO_PREDICT:
+                predict_result = model.predict(data)
+                resultText, prediction = parse_predict(predict_result)
 
             success, img_encoded = cv2.imencode('.jpg', toshow)
 

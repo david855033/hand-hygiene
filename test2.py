@@ -1,6 +1,6 @@
 import numpy as np
 import cv2
-cap = cv2.VideoCapture('server/test.MOV')
+cap = cv2.VideoCapture(2)
 while(cap.isOpened()):
 
     ret, frame = cap.read()
