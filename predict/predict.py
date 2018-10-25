@@ -42,7 +42,7 @@ def predict_folder(model_path, img_folder, assign_set=[]):
             data = np.reshape(preprocessed_img, (1,) + preprocessed_img.shape)
             predict_result = model.predict(data)
             resultText, prediction = parse_predict(predict_result)
-            
+
             img_toshow = cv2.resize(img, (128, 128))
 
             result_area = np.zeros((128, 128, 3), np.uint8)
@@ -115,11 +115,18 @@ def predict_video(model_path, video_path, flip=-2):
     print(' >> model_path: {0}'.format(model_path))
     print(' >> video_path: {0}'.format(video_path))
 
-    model = load_model(model_path)
-    capture = cv2.VideoCapture(video_path)
+    DO_PREDICT = False
+
+    model = object()
+    if DO_PREDICT:
+        model = load_model(model_path)
+    capture = cv2.VideoCapture(0)
+
     fps = capture.get(cv2.CAP_PROP_FPS)
+    fps = 10  # overwrite fps
     spf = int(1000/fps)
     print('fps: {0}'.format(fps))
+
     while(True):
         # Capture frame-by-frame
         ret, frame = capture.read()
@@ -135,7 +142,11 @@ def predict_video(model_path, video_path, flip=-2):
         preprocess_frame /= 255
 
         data = np.reshape(preprocess_frame, (1,)+preprocess_frame.shape)
-        predict_result = model.predict(data)
+
+        predict_result = np.array([1, 0, 0, 0, 0, 0, 0])
+        if DO_PREDICT:
+            predict_result = model.predict(data)
+
         resultText, prediction = parse_predict(predict_result)
 
         frame_toshow = cv2.resize(frame, (224, 224))
