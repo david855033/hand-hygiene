@@ -37,5 +37,10 @@ def preprocess_folder(source_path, preprocess_path):
 
 
 def preprocess_img(image):
-    img = cv2.resize(image, (224, 224))
-    return img
+    height, width, channel = image.shape
+    if height/width > 1080/1920:
+        newHeight = int(width * 1080 / 1920)
+        startY = int((height-newHeight)/2)
+        image = image[startY:startY+newHeight, :]
+    image = cv2.resize(image, (224, 224))
+    return image

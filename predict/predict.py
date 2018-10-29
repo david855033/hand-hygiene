@@ -115,15 +115,15 @@ def predict_video(model_path, video_path, flip=-2):
     print(' >> model_path: {0}'.format(model_path))
     print(' >> video_path: {0}'.format(video_path))
 
-    DO_PREDICT = False
+    DO_PREDICT = True
 
     model = object()
     if DO_PREDICT:
         model = load_model(model_path)
-    capture = cv2.VideoCapture(0)
+    capture = cv2.VideoCapture(0)  # r'.\data\videosrc\4_finger.MOV'
 
     fps = capture.get(cv2.CAP_PROP_FPS)
-    fps = 10  # overwrite fps
+    fps = 5  # overwrite fps
     spf = int(1000/fps)
     print('fps: {0}'.format(fps))
 
@@ -136,12 +136,12 @@ def predict_video(model_path, video_path, flip=-2):
         if flip != -2:
             preprocess_frame = cv2.flip(preprocess_frame, flip)
 
-        preprocess_frame = cv2.cvtColor(preprocess_frame,
-                                        cv2.COLOR_BGR2RGB)
-        preprocess_frame = np.array(preprocess_frame).astype('float32')
-        preprocess_frame /= 255
+        preprocess_frame_RGB = cv2.cvtColor(preprocess_frame,
+                                            cv2.COLOR_BGR2RGB)
+        preprocess_frame_RGB = np.array(preprocess_frame_RGB).astype('float32')
+        preprocess_frame_RGB /= 255
 
-        data = np.reshape(preprocess_frame, (1,)+preprocess_frame.shape)
+        data = np.reshape(preprocess_frame_RGB, (1,)+preprocess_frame_RGB.shape)
 
         predict_result = np.array([1, 0, 0, 0, 0, 0, 0])
         if DO_PREDICT:
@@ -149,7 +149,7 @@ def predict_video(model_path, video_path, flip=-2):
 
         resultText, prediction = parse_predict(predict_result)
 
-        frame_toshow = cv2.resize(frame, (224, 224))
+        frame_toshow = cv2.resize(preprocess_frame, (640, 360))
         putText(frame_toshow, resultText,  prediction,
                 fontScale=0.5, lineType=1, dy=15)
 
