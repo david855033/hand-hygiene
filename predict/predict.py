@@ -110,22 +110,23 @@ def putText(preprocess_toshow, resultText, prediction, ground_truth="",
         y += dy
 
 
-def predict_video(model_path, video_path, flip=-2):
+def predict_video(model_path, video_path, flip=-2,  DO_PREDICT=True, average_n=3, threshold=0.7):
     print('\n[Predict frames while playing video]')
     print(' >> model_path: {0}'.format(model_path))
     print(' >> video_path: {0}'.format(video_path))
 
-    DO_PREDICT = True
-
     model = object()
     if DO_PREDICT:
         model = load_model(model_path)
-    capture = cv2.VideoCapture(0)  # r'.\data\videosrc\4_finger.MOV'
+    # r'.\data\videosrc\4_finger.MOV'
+    capture = cv2.VideoCapture(0)
 
     fps = capture.get(cv2.CAP_PROP_FPS)
     fps = 5  # overwrite fps
     spf = int(1000/fps)
     print('fps: {0}'.format(fps))
+    average_predict_result = np.array([0, 0, 0, 0, 0, 0, 0])
+    predict_result = np.array([1, 0, 0, 0, 0, 0, 0])
 
     while(True):
         # Capture frame-by-frame
@@ -143,21 +144,83 @@ def predict_video(model_path, video_path, flip=-2):
 
         data = np.reshape(preprocess_frame_RGB, (1,)+preprocess_frame_RGB.shape)
 
-        predict_result = np.array([1, 0, 0, 0, 0, 0, 0])
         if DO_PREDICT:
             predict_result = model.predict(data)
 
-        resultText, prediction = parse_predict(predict_result)
+        frame_toshow = cv2.resize(frame, (640, 360))
 
-        frame_toshow = cv2.resize(preprocess_frame, (640, 360))
-        putText(frame_toshow, resultText,  prediction,
-                fontScale=0.5, lineType=1, dy=15)
+        average_predict_result = (
+            average_predict_result*(average_n-1)+predict_result)/average_n
 
+        result_block = getResultBlock(predict_result, average_predict_result)
+        display = np.vstack((frame_toshow, result_block))
         # Display the resulting frame
-        cv2.imshow('video', frame_toshow)
+        cv2.imshow('video', display)
         if cv2.waitKey(spf) & 0xFF == ord('q'):
             break
 
     # When everything done, release the capture
     capture.release()
     cv2.destroyAllWindows()
+
+
+def getResultBlock(predict_result, average_predict_result):
+    col1 = np.vstack(getBars(predict_result))
+    col2 = np.vstack(getBars(average_predict_result))
+    padding = getBox(200, 5, (40, 40, 40))
+    right = np.vstack(
+        (getSequence(70, 470), np.zeros((130, 470, 3), dtype=np.uint8)))
+    return np.hstack((col1, padding, col2, padding, right))
+
+
+def getSequence(height, width,   padding=3):
+    mainbox = np.zeros((height, width, 3), dtype=np.uint8)
+    n = len(ACTIONS)
+    boxwidth = round((width - padding * (n+1)) / n)
+
+    for i in range(n):
+        left = padding + (padding+boxwidth) * i
+        mainbox[padding:-padding,
+                left:left+boxwidth, 0] = 255
+    return mainbox
+
+
+def getBars(predict_result):
+    font = cv2.FONT_HERSHEY_SIMPLEX
+    fontColor = (255, 255, 255)
+    fontScale = 0.3
+    lineType = 1
+    boxes = []
+    colormap = [((255, 48, 48), (58, 13, 13)),
+                ((237, 237, 42), (58, 52, 13)),
+                ((94, 237, 42), (24, 58, 13)),
+                ((42, 237, 149), (13, 58, 37)),
+                ((42, 162, 237), (13, 42, 58)),
+                ((75, 42, 237), (27, 13, 58)),
+                ((224, 42, 237), (58, 13, 58))]
+    for i, e in enumerate(predict_result[0]):
+        e = e.item()
+        w = round(e*80)
+        box = np.vstack((
+            np.hstack((
+                getBox(24, w, colormap[i][0]),
+                getBox(24, 80-w, colormap[i][1])
+            )),
+            getBox(1, 80, (0, 0, 0))
+        ))
+        cv2.putText(box, ACTIONS[i]+":"+"%.2f" % e, (5, 15),
+                    font,
+                    fontScale,
+                    fontColor,
+                    lineType)
+        boxes.append(box)
+    boxes.append(getBox(25, 80, (40, 40, 40)))
+    return boxes
+
+
+def getBox(height, width, color=(0, 0, 0)):
+    box = np.zeros((height, width, 3), dtype=np.uint8)
+    box[:, :, 0] = color[0]
+    box[:, :, 1] = color[1]
+    box[:, :, 2] = color[2]
+    return box
