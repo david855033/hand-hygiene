@@ -15,7 +15,7 @@ def predict_folder(model_path, img_folder, assign_set=[]):
     print('\n[Predict imgs in a folder]')
     print(' >> model_path: {0}'.format(model_path))
     print(' >> img_folder: {0}'.format(img_folder))
-    with CustomObjectScope({'relu6': keras.layers.ReLU(6.),'DepthwiseConv2D': keras.layers.DepthwiseConv2D}):
+    with CustomObjectScope({'relu6': keras.layers.ReLU(6.), 'DepthwiseConv2D': keras.layers.DepthwiseConv2D}):
         model = load_model(model_path)
     img_list = []
     for root, dirs, files in os.walk(img_folder):
@@ -113,25 +113,26 @@ def putText(preprocess_toshow, resultText, prediction, ground_truth="",
         y += dy
 
 
-def predict_video(model_path, video_path, flip=-2,  DO_PREDICT=True, average_n=3, threshold=0.7):
+def predict_video(model_path, video_path, flip=-2,  DO_PREDICT=True, average_n=10, threshold=0.8):
     print('\n[Predict frames while playing video]')
     print(' >> model_path: {0}'.format(model_path))
     print(' >> video_path: {0}'.format(video_path))
 
     model = object()
     if DO_PREDICT:
-        with CustomObjectScope({'relu6': keras.layers.ReLU(6.),'DepthwiseConv2D': keras.layers.DepthwiseConv2D}):
+        with CustomObjectScope({'relu6': keras.layers.ReLU(6.), 'DepthwiseConv2D': keras.layers.DepthwiseConv2D}):
             model = load_model(model_path)
-    # r'.\data\videosrc\4_tip.MOV'
-    capture = cv2.VideoCapture( r'.\data\videosrc\5_tip.MOV')
+    # r'.\data\temp\IMG_5556.MOV'
+    capture = cv2.VideoCapture(r'.\data\temp\all.MOV')
 
     fps = capture.get(cv2.CAP_PROP_FPS)
-    fps = 5  # overwrite fps
+    fps = 1000  # overwrite fps
     spf = int(1000/fps)
     print('fps: {0}'.format(fps))
-    average_predict_result = np.array([0, 0, 0, 0, 0, 0, 0])
-    predict_result = np.array([1, 0, 0, 0, 0, 0, 0])
 
+    average_predict_result = np.array([[0, 0, 0, 0, 0, 0, 0]])
+    predict_result = np.array([[0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1]])
+    action_status = np.array([0, 0, 0, 0, 0, 0, 0])
     while(True):
         # Capture frame-by-frame
         ret, frame = capture.read()
@@ -144,7 +145,10 @@ def predict_video(model_path, video_path, flip=-2,  DO_PREDICT=True, average_n=3
         preprocess_frame_RGB = cv2.cvtColor(preprocess_frame,
                                             cv2.COLOR_BGR2RGB)
         preprocess_frame_RGB = np.array(preprocess_frame_RGB).astype('float32')
-        preprocess_frame_RGB /= 255
+
+        # preprocess_frame_RGB /= 255
+        preprocess_frame_RGB = keras.applications.mobilenet.preprocess_input(
+            preprocess_frame_RGB)
 
         data = np.reshape(preprocess_frame_RGB, (1,) +
                           preprocess_frame_RGB.shape)
@@ -152,13 +156,18 @@ def predict_video(model_path, video_path, flip=-2,  DO_PREDICT=True, average_n=3
         if DO_PREDICT:
             predict_result = model.predict(data)
 
-        frame_toshow = cv2.resize(frame, (640, 360))
+        frame_toshow = cv2.resize(preprocess_frame, (480, 360))
 
         average_predict_result = (
             average_predict_result*(average_n-1)+predict_result)/average_n
 
-        result_block = getResultBlock(predict_result, average_predict_result)
+        action_status = update_status(
+            action_status, average_predict_result, threshold)
+
+        result_block = getResultBlock(
+            predict_result, average_predict_result, action_status, 400, 480)
         display = np.vstack((frame_toshow, result_block))
+
         # Display the resulting frame
         cv2.imshow('video', display)
         if cv2.waitKey(spf) & 0xFF == ord('q'):
@@ -169,28 +178,17 @@ def predict_video(model_path, video_path, flip=-2,  DO_PREDICT=True, average_n=3
     cv2.destroyAllWindows()
 
 
-def getResultBlock(predict_result, average_predict_result):
-    col1 = np.vstack(getBars(predict_result))
-    col2 = np.vstack(getBars(average_predict_result))
-    padding = getBox(200, 5, (40, 40, 40))
-    right = np.vstack(
-        (getSequence(70, 470), np.zeros((130, 470, 3), dtype=np.uint8)))
-    return np.hstack((col1, padding, col2, padding, right))
+def getResultBlock(predict_result, average_predict_result, action_status, height, width):
+    col1 = np.vstack(
+        getBars(predict_result, height=round(height/2), width=round(width/2)))
+    col2 = np.vstack(getBars(average_predict_result,
+                             height=round(height/2),  width=width - round(width/2)))
+    bottom = np.hstack((col1, col2))
+    top = getSequence(action_status, 70, width)
+    return np.vstack((top, bottom))
 
 
-def getSequence(height, width,   padding=3):
-    mainbox = np.zeros((height, width, 3), dtype=np.uint8)
-    n = len(ACTIONS)
-    boxwidth = round((width - padding * (n+1)) / n)
-
-    for i in range(n):
-        left = padding + (padding+boxwidth) * i
-        mainbox[padding:-padding,
-                left:left+boxwidth, 0] = 255
-    return mainbox
-
-
-def getBars(predict_result):
+def getBars(predict_result, height, width):
     font = cv2.FONT_HERSHEY_SIMPLEX
     fontColor = (255, 255, 255)
     fontScale = 0.3
@@ -203,15 +201,17 @@ def getBars(predict_result):
                 ((42, 162, 237), (13, 42, 58)),
                 ((75, 42, 237), (27, 13, 58)),
                 ((224, 42, 237), (58, 13, 58))]
+    bar_height = round(height/8)-1
+    bar_width = width
     for i, e in enumerate(predict_result[0]):
         e = e.item()
-        w = round(e*80)
+        bright_width = round(e*bar_width)
         box = np.vstack((
             np.hstack((
-                getBox(24, w, colormap[i][0]),
-                getBox(24, 80-w, colormap[i][1])
+                getBox(bar_height-1, bright_width, colormap[i][0]),
+                getBox(bar_height-1, bar_width-bright_width, colormap[i][1])
             )),
-            getBox(1, 80, (0, 0, 0))
+            getBox(1, width, (0, 0, 0))
         ))
         cv2.putText(box, ACTIONS[i]+":"+"%.2f" % e, (5, 15),
                     font,
@@ -219,7 +219,7 @@ def getBars(predict_result):
                     fontColor,
                     lineType)
         boxes.append(box)
-    boxes.append(getBox(25, 80, (40, 40, 40)))
+    boxes.append(getBox(bar_height, width, (40, 40, 40)))
     return boxes
 
 
@@ -229,3 +229,29 @@ def getBox(height, width, color=(0, 0, 0)):
     box[:, :, 1] = color[1]
     box[:, :, 2] = color[2]
     return box
+
+
+def getSequence(action_status, height, width,   padding=3):
+    mainbox = np.zeros((height, width, 3), dtype=np.uint8)
+    n = len(ACTIONS)
+    boxwidth = round((width - padding * (n+1)) / n)
+
+    for i in range(n):
+        left = padding + (padding+boxwidth) * i
+        color = (255, 0, 0)
+        if action_status[i] == 1:
+            color = (0, 255, 0)
+        mainbox[padding:-padding, left: left +
+                boxwidth] = getBox(height-padding*2, boxwidth, color)
+    return mainbox
+
+
+def update_status(action_status, average_predict_result, threshold):
+    argmax = np.argmax(average_predict_result, axis=1)[0]
+    
+    if average_predict_result[0][argmax] >= threshold:
+        if action_status[0] > 0:
+            action_status[argmax] = 1
+        elif argmax == 0:
+            action_status[0] = 1
+    return action_status
