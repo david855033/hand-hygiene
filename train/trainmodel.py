@@ -11,6 +11,7 @@ from keras.callbacks import TensorBoard
 from keras.preprocessing.image import ImageDataGenerator, img_to_array, load_img
 import keras
 import random
+from keras.utils.generic_utils import CustomObjectScope
 
 
 def trainmodel(source_path, model_save_path, model_autosave_path):
@@ -22,9 +23,16 @@ def trainmodel(source_path, model_save_path, model_autosave_path):
     if exists(model_save_path):
         input('"{0}"'
               .format(model_save_path) +
-              " exsists, press Enter to overwrite. " +
+              " exsists, press Enter to continue. " +
               "Press Ctrl+C and Enter to Abort.")
-    model = create_model()
+        with CustomObjectScope({'relu6': keras.layers.ReLU(6.), 'DepthwiseConv2D': keras.layers.DepthwiseConv2D}):
+            model = load_model(model_save_path)
+        # for layer in model.layers[:-5]:
+        #     layer.trainable = False
+        # model = Model(model.inputs, model.outputs)
+        keras.utils.print_summary(model)
+    else:
+        model = create_model()
 
     checkfolder(dirname(model_save_path))
     augment_path = r'./data/augment'
@@ -101,7 +109,7 @@ def trainmodel(source_path, model_save_path, model_autosave_path):
 
 
 def showPreview(x_train, y_train, x_val, y_val):
-    #todo
+    # todo
     # keras.applications.mobilenet.preprocess_input
     print('preview')
     return
