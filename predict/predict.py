@@ -9,6 +9,7 @@ from share.global_setting import ACTIONS
 from preprocess.preprocess import preprocess_img
 from random import shuffle
 from keras.utils.generic_utils import CustomObjectScope
+import time
 
 
 def predict_folder(model_path, img_folder, assign_set=[]):
@@ -113,7 +114,7 @@ def putText(preprocess_toshow, resultText, prediction, ground_truth="",
         y += dy
 
 
-def predict_video(model_path, video_path, flip=-2,  DO_PREDICT=True, average_n=10, threshold=0.8):
+def predict_video(model_path, video_path, flip=-2,  DO_PREDICT=True, average_n=3, threshold=0.8):
     print('\n[Predict frames while playing video]')
     print(' >> model_path: {0}'.format(model_path))
     print(' >> video_path: {0}'.format(video_path))
@@ -133,6 +134,7 @@ def predict_video(model_path, video_path, flip=-2,  DO_PREDICT=True, average_n=1
     average_predict_result = np.array([[0, 0, 0, 0, 0, 0, 0]])
     predict_result = np.array([[0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1]])
     action_status = np.array([0, 0, 0, 0, 0, 0, 0])
+    timestamp = time.time()
     while(True):
         # Capture frame-by-frame
         ret, frame = capture.read()
@@ -158,8 +160,12 @@ def predict_video(model_path, video_path, flip=-2,  DO_PREDICT=True, average_n=1
 
         frame_toshow = cv2.resize(preprocess_frame, (480, 360))
 
+        newtimestamp = time.time()
+        duration = newtimestamp - timestamp
+        timestamp = newtimestamp
+
         average_predict_result = (
-            average_predict_result*(average_n-1)+predict_result)/average_n
+            average_predict_result*(average_n-duration)+predict_result*duration)/average_n
 
         action_status = update_status(
             action_status, average_predict_result, threshold)
@@ -248,7 +254,7 @@ def getSequence(action_status, height, width,   padding=3):
 
 def update_status(action_status, average_predict_result, threshold):
     argmax = np.argmax(average_predict_result, axis=1)[0]
-    
+
     if average_predict_result[0][argmax] >= threshold:
         if action_status[0] > 0:
             action_status[argmax] = 1
