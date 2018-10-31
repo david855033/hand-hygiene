@@ -13,7 +13,7 @@ parser.add_argument(
     default=-1, dest="max_img_number", type=int)
 parser.add_argument(
     "-r", help="ratio of skipped frame to extracted frame",
-    default=5, dest="extract_ratio", type=int)
+    default=3, dest="extract_ratio", type=int)
 
 args = parser.parse_args()
 

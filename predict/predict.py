@@ -1,19 +1,22 @@
 import cv2
 import os
 import numpy as np
+import keras
+from keras.utils.generic_utils import CustomObjectScope
 from os.path import join, split
 from keras.models import load_model
 from share.global_setting import ACTIONS
 from preprocess.preprocess import preprocess_img
 from random import shuffle
+from keras.utils.generic_utils import CustomObjectScope
 
 
 def predict_folder(model_path, img_folder, assign_set=[]):
     print('\n[Predict imgs in a folder]')
     print(' >> model_path: {0}'.format(model_path))
     print(' >> img_folder: {0}'.format(img_folder))
-
-    model = load_model(model_path)
+    with CustomObjectScope({'relu6': keras.layers.ReLU(6.),'DepthwiseConv2D': keras.layers.DepthwiseConv2D}):
+        model = load_model(model_path)
     img_list = []
     for root, dirs, files in os.walk(img_folder):
         for file in files:
@@ -117,9 +120,10 @@ def predict_video(model_path, video_path, flip=-2,  DO_PREDICT=True, average_n=3
 
     model = object()
     if DO_PREDICT:
-        model = load_model(model_path)
-    # r'.\data\videosrc\4_finger.MOV'
-    capture = cv2.VideoCapture(0)
+        with CustomObjectScope({'relu6': keras.layers.ReLU(6.),'DepthwiseConv2D': keras.layers.DepthwiseConv2D}):
+            model = load_model(model_path)
+    # r'.\data\videosrc\4_tip.MOV'
+    capture = cv2.VideoCapture( r'.\data\videosrc\5_tip.MOV')
 
     fps = capture.get(cv2.CAP_PROP_FPS)
     fps = 5  # overwrite fps
@@ -142,7 +146,8 @@ def predict_video(model_path, video_path, flip=-2,  DO_PREDICT=True, average_n=3
         preprocess_frame_RGB = np.array(preprocess_frame_RGB).astype('float32')
         preprocess_frame_RGB /= 255
 
-        data = np.reshape(preprocess_frame_RGB, (1,)+preprocess_frame_RGB.shape)
+        data = np.reshape(preprocess_frame_RGB, (1,) +
+                          preprocess_frame_RGB.shape)
 
         if DO_PREDICT:
             predict_result = model.predict(data)

@@ -18,6 +18,14 @@ def trainmodel(source_path, model_save_path, model_autosave_path):
     print(' >> traning data src: {0}'.format(source_path))
     print(' >> model destination: {0}'.format(model_save_path))
 
+    model = object()
+    if exists(model_save_path):
+        input('"{0}"'
+              .format(model_save_path) +
+              " exsists, press Enter to overwrite. " +
+              "Press Ctrl+C and Enter to Abort.")
+    model = create_model()
+
     checkfolder(dirname(model_save_path))
     augment_path = r'./data/augment'
     checkfolder(augment_path)
@@ -29,29 +37,20 @@ def trainmodel(source_path, model_save_path, model_autosave_path):
         except Exception as e:
             print(e)
 
-    model = object()
-    if exists(model_save_path):
-        input('"{0}"'
-              .format(model_save_path) +
-              " exsists, press Enter to overwrite. " +
-              "Press Ctrl+C and Enter to Abort.")
     batch_size = 128
     epochs = 300
     num_classes = len(ACTIONS)
 
     x_train, y_train, x_val, y_val, x_test, y_test = loadImgs(source_path)
     x_train = np.array(x_train).astype('float32')
-    x_train /= 255
     x_train = x_train.reshape(x_train.shape[0], 224, 224, 3)
     y_train = keras.utils.to_categorical(y_train, num_classes)
 
     x_val = np.array(x_val).astype('float32')
-    x_val /= 255
     x_val = x_val.reshape(x_val.shape[0], 224, 224, 3)
     y_val = keras.utils.to_categorical(y_val, num_classes)
 
     x_test = np.array(x_test).astype('float32')
-    x_test /= 255
     x_test = x_test.reshape(x_test.shape[0], 224, 224, 3)
     y_test = keras.utils.to_categorical(y_test, num_classes)
 
@@ -59,14 +58,16 @@ def trainmodel(source_path, model_save_path, model_autosave_path):
         len(x_train), len(x_val), len(x_test)))
 
     datagen = ImageDataGenerator(
-        featurewise_center=True,
+        preprocessing_function=keras.applications.mobilenet.preprocess_input,
         width_shift_range=0.1,
         height_shift_range=0.1,
         zoom_range=0.1,
         rotation_range=20,
         shear_range=10
     )
-    datagen.fit(x_train)
+
+    val_batches = ImageDataGenerator(
+        preprocessing_function=keras.applications.mobilenet.preprocess_input)
 
     i = 0
     preview_img = x_train[0]
@@ -81,12 +82,13 @@ def trainmodel(source_path, model_save_path, model_autosave_path):
         if i > 20:
             break
 
-    model = create_model()
     model.fit_generator(
-        datagen.flow(x_train, y_train, batch_size=batch_size),
+        datagen.flow(x_train, y_train, batch_size=batch_size, shuffle=True),
         steps_per_epoch=int(len(x_train) / batch_size),
-        epochs=epochs, verbose=1, validation_data=(x_val, y_val),
-        callbacks=[TensorBoard(log_dir='./tmp/set15_d24_run2'),
+        epochs=epochs, verbose=1,
+        validation_data=val_batches.flow(
+            x_val, y_val, batch_size=batch_size, shuffle=True),
+        callbacks=[TensorBoard(log_dir='./tmp/set16_mnv2_run10_train56layer_alpha1.0_no validation preprocess'),
                    keras.callbacks.ModelCheckpoint(
                        model_autosave_path, monitor='val_acc', mode='max',
                        verbose=1, save_best_only=True, period=5)])
@@ -98,7 +100,14 @@ def trainmodel(source_path, model_save_path, model_autosave_path):
     print('Test accuracy:', score[1])
 
 
-def loadImgs(source_path, setcount=15, valcount=3, testcount=0):
+def showPreview(x_train, y_train, x_val, y_val):
+    #todo
+    # keras.applications.mobilenet.preprocess_input
+    print('preview')
+    return
+
+
+def loadImgs(source_path, setcount=16, valcount=3, testcount=0):
     x_train, y_train, x_val, y_val, x_test, y_test = [], [], [], [], [], []
     count = 0
     i = 0
