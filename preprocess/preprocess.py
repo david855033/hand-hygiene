@@ -37,6 +37,10 @@ def preprocess_folder(source_path, preprocess_path):
 
 
 def preprocess_img(image):
+    """
+    crop and resize the image
+    without changing pixel encoding(origin: 0-255)
+    """
     height, width, channel = image.shape
     if height/width < 480/640:
         estimate_width = width/640*480
