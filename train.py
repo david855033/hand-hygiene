@@ -6,10 +6,10 @@ parser.add_argument("-s",
                     help="folder that contains preprocessed img for training",
                     default=r".\data\preprocess", dest="source_path")
 parser.add_argument("-m", help="path of model to save",
-                    default=r".\data\model\model_training.h5",
+                    default=r"",
                     dest="model_save_path")
 parser.add_argument("-a", help="path of model to autosave",
-                    default=r".\data\model\model_training_autosave.h5",
+                    default=r"",
                     dest="model_autosave_path")
 
 arg = parser.parse_args()
