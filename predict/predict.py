@@ -114,26 +114,37 @@ def putText(preprocess_toshow, resultText, prediction, ground_truth="",
         y += dy
 
 
-def predict_video(model_path, video_path, flip=-2,  DO_PREDICT=True, average_n=3, threshold=0.8):
+def predict_video(
+        model_path, video_path, flip=-2, DO_PREDICT=True, average_n=3,
+        threshold=0.4):
     print('\n[Predict frames while playing video]')
     print(' >> model_path: {0}'.format(model_path))
     print(' >> video_path: {0}'.format(video_path))
 
     model = object()
     if DO_PREDICT:
-        with CustomObjectScope({'relu6': keras.layers.ReLU(6.), 'DepthwiseConv2D': keras.layers.DepthwiseConv2D}):
+        with CustomObjectScope({'relu6': keras.layers.ReLU(6.),
+                                'DepthwiseConv2D': keras.layers.DepthwiseConv2D}):
             model = load_model(model_path)
-    # r'.\data\temp\IMG_5556.MOV'
-    capture = cv2.VideoCapture(r'.\data\temp\all.MOV')
+
+    capture = cv2.VideoCapture(r'.\data\testvideo\all.MOV')
+    video_mode = True
+
+    # set start position
+    capture.set(cv2.CAP_PROP_POS_FRAMES, 60)
 
     fps = capture.get(cv2.CAP_PROP_FPS)
-    fps = 1000  # overwrite fps
-    spf = int(1000/fps)
+    # fps = 40  # overwrite fps
+    spf = 1  # int(1000/fps)
     print('fps: {0}'.format(fps))
+
+    out_video = cv2.VideoWriter(
+        r'data\output\output.avi', cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'),
+        fps, (480, 622))
 
     average_predict_result = np.array([[0, 0, 0, 0, 0, 0, 0]])
     predict_result = np.array([[0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1]])
-    action_status = np.array([0, 0, 0, 0, 0, 0, 0])
+    action_status = np.zeros(6)
     timestamp = time.time()
     while(True):
         # Capture frame-by-frame
@@ -163,9 +174,16 @@ def predict_video(model_path, video_path, flip=-2,  DO_PREDICT=True, average_n=3
         newtimestamp = time.time()
         duration = newtimestamp - timestamp
         timestamp = newtimestamp
+        if video_mode:
+            duration = 1/fps
+
+        max_index = np.argmax(predict_result, axis=1)[0]
+        one_hot_result = np.zeros(predict_result.shape)
+        one_hot_result[0][max_index] = 1
 
         average_predict_result = (
-            average_predict_result*(average_n-duration)+predict_result*duration)/average_n
+            average_predict_result * (average_n - duration) + one_hot_result *
+            duration) / average_n
 
         action_status = update_status(
             action_status, average_predict_result, threshold)
@@ -176,19 +194,27 @@ def predict_video(model_path, video_path, flip=-2,  DO_PREDICT=True, average_n=3
 
         # Display the resulting frame
         cv2.imshow('video', display)
+        pos_msec = capture.get(cv2.CAP_PROP_POS_MSEC)
+        if pos_msec > 41000:
+            break
+        out_video.write(display)
         if cv2.waitKey(spf) & 0xFF == ord('q'):
             break
 
     # When everything done, release the capture
     capture.release()
+    out_video.release()
     cv2.destroyAllWindows()
 
 
-def getResultBlock(predict_result, average_predict_result, action_status, height, width):
+def getResultBlock(
+        predict_result, average_predict_result, action_status, height, width):
     col1 = np.vstack(
         getBars(predict_result, height=round(height/2), width=round(width/2)))
-    col2 = np.vstack(getBars(average_predict_result,
-                             height=round(height/2),  width=width - round(width/2)))
+    col2 = np.vstack(
+        getBars(
+            average_predict_result, height=round(height / 2),
+            width=width - round(width / 2)))
     bottom = np.hstack((col1, col2))
     top = getSequence(action_status, 70, width)
     return np.vstack((top, bottom))
@@ -237,27 +263,34 @@ def getBox(height, width, color=(0, 0, 0)):
     return box
 
 
-def getSequence(action_status, height, width,   padding=3):
+def getSequence(action_status, height, width,  padding=3):
     mainbox = np.zeros((height, width, 3), dtype=np.uint8)
-    n = len(ACTIONS)
+    n = len(action_status)
     boxwidth = round((width - padding * (n+1)) / n)
 
     for i in range(n):
         left = padding + (padding+boxwidth) * i
-        color = (255, 0, 0)
+        color = (12, 40, 21)
         if action_status[i] == 1:
-            color = (0, 255, 0)
+            color = (39, 150, 15)
+
+        box = getBox(height-padding*2, boxwidth, color)
+
+        cv2.putText(box, ACTIONS[i+1],
+                    (5, 40),
+                    fontFace=cv2.FONT_HERSHEY_SIMPLEX,
+                    fontScale=0.4,
+                    color=(255, 255, 255), lineType=1)
+
         mainbox[padding:-padding, left: left +
-                boxwidth] = getBox(height-padding*2, boxwidth, color)
+                boxwidth] = box
+
     return mainbox
 
 
 def update_status(action_status, average_predict_result, threshold):
     argmax = np.argmax(average_predict_result, axis=1)[0]
-
-    if average_predict_result[0][argmax] >= threshold:
-        if action_status[0] > 0:
-            action_status[argmax] = 1
-        elif argmax == 0:
-            action_status[0] = 1
+    if argmax > 0 and average_predict_result[0][argmax] > threshold:
+        argmax -= 1
+        action_status[argmax] = 1
     return action_status
